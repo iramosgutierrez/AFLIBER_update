@@ -1,0 +1,102 @@
+---
+title: "RodriguezBujan2023"
+author: "Ignacio Ramos-Gutiérrez" #author of the Rmd!
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Data origin reference: Several papers published at Nova Acta Cientifica Compostelana. <https://revistas.usc.gal/index.php/nacc/article/view/9057/13124> <https://revistas.uma.es/index.php/abm/article/view/12150/14369> <https://revistas.ucm.es/index.php/BOCM/article/view/72929/4564456557652>
+
+Primary data compiler: Iván Rodríguez Buján
+
+Other data compilers:
+
+## Notes
+
+-   There is an error regarding *Hymenophyllum tunbrigense* to correct.
+
+## Packages
+
+```{r, message=FALSE}
+library(here)
+library(tidyverse)
+library(tidylog)
+library(terra)
+
+source(here::here("R/AFLIBER_functions.R"))
+```
+
+## Load dataset
+
+```{r}
+citationkey <- "RodriguezBujan2023"
+# dt_raw <- readr::read_csv(here(paste0("inst/",citationkey,"/raw/XXXXXX.csv")))
+dt_raw<- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_GAL.xlsx")), sheet = "UNION")
+```
+
+## Modify dataset
+
+```{r}
+#modify variables
+dt_modif <- dt_raw |> 
+  mutate(Taxon = ifelse(is.na(Especie_AFLIBER), Especie_Articulo, Especie_AFLIBER)) |> 
+  rename(UTM10x10 = `UTM 10x10`,
+         UTM1x1 = `UTM 1x1`) |> 
+  mutate(References =  paste0(Referencia, ". ", DOI)) |> 
+
+
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+```
+
+## Prepare dataset
+
+```{r}
+
+dt_modif$id <- 1:nrow(dt_modif)
+
+# #check allowed values
+# check_taxa(dt_modif)  #see incorrect taxa
+# check_cells(dt_modif)  #see incorrect cells
+
+dt_check_vals <- dt_modif |> 
+clean_values()
+
+
+# Create dataset to compile
+dt_include<- dt_check_vals |> 
+  distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References,
+           id)
+
+dt_save <- dt_modif |> 
+  filter(!id %in% dt_include$id)
+
+```
+
+```{r}
+readr::write_csv(select(dt_include, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,".csv")))
+
+readr::write_csv(select(dt_save, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,"_notused.csv")))
+
+
+
+```
+
+## Session info
+
+```{r}
+sessioninfo::session_info()
+```
