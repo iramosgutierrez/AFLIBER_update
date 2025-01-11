@@ -2,8 +2,8 @@
 require(rgbif)
 
 # Iberian Grid cells allowed values
-valid.cells <- read.csv(here::here("GitHub/inst/materials/validcells_10.csv"))[,1]
-valid.taxa  <- read.csv(here::here("GitHub/inst/materials/AFLIBER_Species_list.csv"))[,"Taxon",drop=T]
+valid.cells <- read.csv(here::here("data-raw/validcells_10.csv"))[,1]
+valid.taxa  <- read.csv(here::here("data-raw/AFLIBER_Species_list.csv"))[,"Taxon",drop=T]
 
 
 progressbar <- function( curr.iter,tot.iter, ini.iter=1, units="mins", msg=NULL){
