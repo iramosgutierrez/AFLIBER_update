@@ -1,0 +1,122 @@
+---
+title: "Salazar2023"
+author: "Ignacio Ramos-Gutiérrez" #author of the Rmd!
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Data origin reference:
+GBIF data from Jaén Herbarium
+
+
+Primary data compiler:
+Carlos Salazar
+
+Other data compilers: 
+
+## Notes
+
+-
+
+
+## Packages
+
+```{r, message=FALSE}
+library(here)
+library(tidyverse)
+library(tidylog)
+library(terra)
+
+source(here::here("R/AFLIBER_functions.R"))
+```
+
+
+## Load dataset
+
+```{r}
+citationkey <- "Salazar2023"
+# dt_raw <- readr::read_csv(here(paste0("inst/",citationkey,"/raw/XXXXXX.csv")))
+dt_raw <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/HERBARIO JAEN NOVIEMBRE 2023_2.xlsx"))) |> 
+  filter(!is.na(VerbatimCoordinates)) |> 
+  select(Genus, SpecificEpithet, InfraSpecificEpithet, VerbatimCoordinates)
+
+```
+
+
+## Modify dataset
+
+```{r}
+#modify variables
+dt_modif <- dt_raw |> 
+  mutate(Taxon = ifelse(is.na(InfraSpecificEpithet),
+                        paste0(Genus, " ", SpecificEpithet),
+                        paste0(Genus, " ", SpecificEpithet, " ", InfraSpecificEpithet))) |> 
+  mutate(VerbatimCoordinates= str_trim(VerbatimCoordinates)) |> 
+  
+  mutate(UTM10x10 = case_when(nchar(VerbatimCoordinates) == 7 ~ VerbatimCoordinates,
+                              nchar(VerbatimCoordinates) == 9 ~ paste0(substr(VerbatimCoordinates,1,6),
+                                                                       substr(VerbatimCoordinates,8,8)) 
+                                                                       ))|> 
+  mutate(UTM1x1 = ifelse(nchar(VerbatimCoordinates) == 9, VerbatimCoordinates, NA )) |> 
+  
+  mutate(References = "https://doi.org/10.15470/wiadvo") |> 
+
+
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+```
+
+
+## Prepare dataset
+
+```{r}
+
+dt_modif$id <- 1:nrow(dt_modif)
+
+# #check allowed values
+# check_taxa(dt_modif)  #see incorrect taxa
+# check_cells(dt_modif)  #see incorrect cells
+
+dt_check_vals <- dt_modif |> 
+clean_values()
+
+
+# Create dataset to compile
+dt_include<- dt_check_vals |> 
+  distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References,
+           id)
+
+dt_save <- dt_modif |> 
+  filter(!id %in% dt_include$id)
+
+```
+```{r}
+readr::write_csv(select(dt_include, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,".csv")))
+
+readr::write_csv(select(dt_save, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,"_notused.csv")))
+
+
+
+```
+
+
+
+## Session info
+
+```{r}
+sessioninfo::session_info()
+```
+
