@@ -1,0 +1,209 @@
+---
+title: "Peralta2024"
+author: "Ignacio Ramos-Gutiérrez" #author of the Rmd!
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Data origin reference:
+Data sent by Javier Peralta from UPNA HErbarium & iNaturalist
+https://doi.org/10.15468/vuqjrw
+
+Primary data compiler:
+Javier Peralta de Andrés
+
+Other data compilers: 
+
+## Notes
+
+-
+
+
+## Packages
+
+```{r, message=FALSE}
+library(here)
+library(tidyverse)
+library(tidylog)
+library(terra)
+
+source(here::here("R/AFLIBER_functions.R"))
+```
+
+
+## Load dataset
+
+```{r}
+citationkey <- "Peralta2024"
+# dt_raw <- readr::read_csv(here(paste0("inst/",citationkey,"/raw/XXXXXX.csv")))
+dt_raw_1 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/datos_Herbario_UPNA_2024.xlsx")), sheet = "UPNA 2020")
+
+dt_raw_2 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/datos_Herbario_UPNA_2024.xlsx")), sheet = "UPNA 2024")
+
+dt_raw_3 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/JPeralta_iNaturalist.xlsx")))
+
+utm10 <- terra::vect(here::here("data-raw/Iberian_Peninsula_10x10_Grid/Iberian_Peninsula_10x10_Grid.shp"))
+
+
+get_major_grid <- function(point, buffer.radius){
+  buffer <- terra::buffer(point, width = buffer.radius) |> 
+    simplifyGeom()
+  crop <- terra::crop( utm10, buffer)
+  crop$area <- suppressWarnings(terra::expanse(crop)/terra::expanse(buffer))
+  if(any(crop$area>0.75)){
+    return(crop$MGRS_10km[which(crop$area>0.75)])
+  }else{
+    return(NA)
+  }
+}
+```
+
+
+## Modify dataset
+
+```{r}
+#modify variables
+dt_modif_1 <- dt_raw_1 |> 
+  mutate(Taxon = ifelse(!is.na(SubspeciesRank) & SubspeciesRank == "subsp.", 
+                        paste0(Genus, " ", Species, " ", Subspecies),
+                        paste0(Genus, " ", Species))) |> 
+           
+  mutate(UTM10x10 = case_when(nchar(UTM) == 7 ~ UTM,
+                            nchar(UTM) == 9 ~  paste0(substr(UTM, 1, 6), substr(UTM, 8, 8)),
+                            nchar(UTM) == 11 ~ paste0(substr(UTM, 1, 6), substr(UTM, 9, 9)),
+                            nchar(UTM) == 13 ~ paste0(substr(UTM, 1, 6), substr(UTM, 10, 10)),
+                            nchar(UTM) == 15 ~ paste0(substr(UTM, 1, 6), substr(UTM, 11, 11))
+                          )) |> 
+  mutate(UTM1x1 = case_when(nchar(UTM) == 9 ~ UTM,
+                            nchar(UTM) == 11 ~ paste0(substr(UTM, 1, 7), substr(UTM, 9, 10)),
+                            nchar(UTM) == 13 ~ paste0(substr(UTM, 1, 7), substr(UTM, 10, 11)),
+                            nchar(UTM) == 15 ~ paste0(substr(UTM, 1, 7), substr(UTM, 11, 12))
+                            )) |> 
+  mutate (References = "Peralta de Andrés J. 2024. Herbario de la Universidad Pública de Navarra, Pamplona: UPNA-H. Departamento de Ciencias, Universidad Pública de Navarra") |> 
+  
+distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+
+
+dt_spat_2 <- dt_raw_2 |> 
+  terra::vect(geom = c("Longitude", "Latitude")) |> 
+  set.crs("epsg:4326") |> 
+  project(utm10) 
+
+vals <- vector(length = length(dt_spat_2$occurrenceID))
+for(i in seq_along(dt_spat_2$occurrenceID)){
+  # RIRG::progressbar(i, length(dt_spat_2$occurrenceID))
+  prec <- abs(dt_spat_2$CoordinatePrecision[i])
+  if(is.na(prec)){prec <- 707}
+  if(prec == 0){prec <- 1}
+  vals[i] <- get_major_grid(dt_spat_2[i,], prec)
+}
+      
+
+
+dt_modif_2 <- dt_raw_2 |> 
+    mutate(Taxon = ifelse(!is.na(SubspeciesRank) & SubspeciesRank == "subsp.", 
+                        paste0(Genus, " ", Species, " ", Subspecies),
+                        paste0(Genus, " ", Species))) |> 
+  mutate(UTM10x10 = vals,
+         UTM1x1 = NA,
+         References = "Peralta de Andrés J. 2024. Herbario de la Universidad Pública de Navarra, Pamplona: UPNA-H. Departamento de Ciencias, Universidad Pública de Navarra") |> 
+  
+distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+dt_spat_3 <- dt_raw_3 |> 
+  mutate(longitude = as.numeric(longitude),
+         latitude  = as.numeric(latitude )) |>
+  terra::vect(geom = c("longitude", "latitude")) |> 
+  set.crs("epsg:4326") |> 
+  project(utm10) 
+
+vals <- vector(length = length(dt_spat_3$id))
+for(i in seq_along(dt_spat_3$id)){
+  RIRG::progressbar(i, length(dt_spat_3$id))
+  prec <- abs(dt_spat_3$positional[i])
+  if(is.na(prec)){prec <- 1}
+  if(prec == 0){prec <- 1}
+  vals[i] <- get_major_grid(dt_spat_3[i,], prec)
+}
+
+dt_modif_3 <- dt_raw_3 |> 
+  rename (Taxon = scientific) |> 
+    mutate(UTM10x10 = vals,
+         UTM1x1 = NA,
+         References = "Peralta de Andrés J. 2024. iNaturalist") |> 
+  distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+dt_modif <- dt_modif_1 |> 
+  bind_rows(dt_modif_2) |> 
+  bind_rows(dt_modif_3) |> 
+  distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+
+```
+
+
+## Prepare dataset
+
+```{r}
+
+dt_modif$id <- 1:nrow(dt_modif)
+
+# #check allowed values
+# check_taxa(dt_modif)  #see incorrect taxa
+# check_cells(dt_modif)  #see incorrect cells
+
+dt_check_vals <- dt_modif |> 
+clean_values()
+
+
+# Create dataset to compile
+dt_include<- dt_check_vals |> 
+  distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References,
+           id)
+
+dt_save <- dt_modif |> 
+  filter(!id %in% dt_include$id)
+
+```
+```{r}
+readr::write_csv(select(dt_include, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,".csv")))
+
+readr::write_csv(select(dt_save, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,"_notused.csv")))
+
+
+
+```
+
+
+
+## Session info
+
+```{r}
+sessioninfo::session_info()
+```
+
