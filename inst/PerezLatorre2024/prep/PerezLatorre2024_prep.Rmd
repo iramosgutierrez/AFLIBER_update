@@ -1,0 +1,142 @@
+---
+title: "PerezLatorre2024"
+author: "Ignacio Ramos-Gutiérrez" #author of the Rmd!
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Data origin reference:
+Flora del PN de los Alcornocales
+Flora del PN Cabo de Gata
+<!-- Flora de -->
+
+
+Proyecto Environmental and Biodiversity Climate Change Lab (EnBiC2-Lab) de la Universidad de Málaga. Laboratorio Virtual de Servicios Ambientales-Equipo de FLORA.
+https://enbic2lab.uma.es/services/flora
+
+A. V. Pérez Latorre, José García Sánchez, Noelia Hidalgo Triana, Teresa Navarro del Águila, Federico Casimiro-Soriguer Solanas & Andros Solakis Tena.
+
+
+Primary data compiler:
+Andrés Vicente Perez Latorre
+
+Other data compilers: 
+
+## Notes
+
+-
+
+
+## Packages
+
+```{r, message=FALSE}
+library(here)
+library(tidyverse)
+library(tidylog)
+library(terra)
+
+source(here::here("R/AFLIBER_functions.R"))
+```
+
+
+## Load dataset
+
+```{r}
+citationkey <- "PerezLatorre2024"
+# dt_raw <- readr::read_csv(here(paste0("inst/",citationkey,"/raw/XXXXXX.csv")))
+dt_raw_alc <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/BBDD_ALC_JCM.xlsx")))
+dt_raw_cgn <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/BBDD_CGN_JCM.xlsx")))
+dt_raw_sni <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Sierra de las Nieves.xlsx"))) |> 
+  rename( speciesInterpreted = scientificName) |> 
+  select(speciesInterpreted, decimalLatitude, decimalLongitude)
+
+dt_raw <- dt_raw_alc |> 
+  bind_rows(dt_raw_cgn, dt_raw_sni)
+
+
+utm10 <- terra::vect(here::here("data-raw/Iberian_Peninsula_10x10_Grid/Iberian_Peninsula_10x10_Grid.shp"))
+
+```
+
+
+## Modify dataset
+
+```{r}
+#modify variables
+dt_spat <- dt_raw |> 
+  terra::vect(geom=c("decimalLongitude","decimalLatitude")) |> 
+  set.crs("epsg:4326") |> 
+  project(utm10) 
+
+dt_modif <- dt_raw |> 
+  mutate(UTM10x10 = terra::extract(utm10,dt_spat)$MGRS_10km ,
+          UTM1x1 = NA,
+          References = "Proyecto Environmental and Biodiversity Climate Change Lab (EnBiC2-Lab) de la Universidad de Málaga. Laboratorio Virtual de Servicios Ambientales-Equipo de FLORA. https://enbic2lab.uma.es/services/flora")  |> 
+  
+  mutate(Taxon =  stringr::word(speciesInterpreted, 1, 2)) |>
+  rowwise() |>
+  mutate(subsp = ifelse(grepl("subsp.", speciesInterpreted),
+           stringr::word(speciesInterpreted,
+                               (which(strsplit(speciesInterpreted, split = " ")[[1]] =="subsp.")+1)),
+           NA)) |>
+  mutate(Taxon = ifelse(is.na(subsp), Taxon, paste0(Taxon, " ", subsp))) |> 
+    
+    
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+```
+
+
+## Prepare dataset
+
+```{r}
+
+dt_modif$id <- 1:nrow(dt_modif)
+
+# #check allowed values
+# check_taxa(dt_modif)  #see incorrect taxa
+# check_cells(dt_modif)  #see incorrect cells
+
+dt_check_vals <- dt_modif |> 
+clean_values()
+
+
+# Create dataset to compile
+dt_include<- dt_check_vals |> 
+  distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References,
+           id)
+
+dt_save <- dt_modif |> 
+  filter(!id %in% dt_include$id)
+
+```
+```{r}
+readr::write_csv(select(dt_include, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,".csv")))
+
+readr::write_csv(select(dt_save, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,"_notused.csv")))
+
+
+
+```
+
+
+
+## Session info
+
+```{r}
+sessioninfo::session_info()
+```
+
