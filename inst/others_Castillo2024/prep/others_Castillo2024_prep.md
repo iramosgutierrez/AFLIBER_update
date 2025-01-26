@@ -1,7 +1,7 @@
 others_Castillo2024
 ================
 Ignacio Ramos-Gutiérrez
-2025-01-11
+2025-01-26
 
 Data origin reference: Several journals
 
@@ -35,6 +35,14 @@ dt_raw_2 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/NuevasCitas
 
     ## New names:
     ## • `` -> `...7`
+
+``` r
+dt_raw_3a <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 2)
+dt_raw_3b <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 3)
+dt_raw_3c <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 4)
+dt_raw_3d <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 5)
+dt_raw_3e <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 6)
+```
 
 ## Modify dataset
 
@@ -73,8 +81,89 @@ dt_modif2 <- dt_raw_2 |>
     ## select: dropped 6 variables (Referencia, Sp. nov., Observaciones, URL/DOI, ...7, …)
 
 ``` r
-dt_modif <- dt_modif1 |> 
-  bind_rows(dt_modif2) |> 
+dt_modif3a <- dt_raw_3a |> 
+  rename(Taxon = Especie_AFLIBER,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`,
+         References = Referencia) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+```
+
+    ## rename: renamed 4 variables (Taxon, UTM1x1, UTM10x10, References)
+    ## select: dropped 3 variables (Especie_Articulo, Observaciones, DOI)
+
+``` r
+dt_modif3b <- dt_raw_3b |> 
+  rename(Taxon = Especie_AFLIBER,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+```
+
+    ## rename: renamed 3 variables (Taxon, UTM1x1, UTM10x10)
+    ## mutate: new variable 'References' (character) with 116 unique values and 0% NA
+    ## select: dropped 4 variables (Especie_Articulo, Observaciones, Referencia, DOI)
+
+``` r
+dt_modif3c <- dt_raw_3c |> 
+  mutate(Taxon = ifelse(!is.na(Especie_AFLIBER), Especie_AFLIBER, Especie_Articulo)) |> 
+  rename(UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+```
+
+    ## mutate: new variable 'Taxon' (character) with 54 unique values and 0% NA
+    ## rename: renamed 2 variables (UTM1x1, UTM10x10)
+    ## mutate: new variable 'References' (character) with 63 unique values and 0% NA
+    ## select: dropped 5 variables (Especie_Articulo, Especie_AFLIBER, Observaciones, Referencia, DOI)
+
+``` r
+dt_modif3d <- dt_raw_3d |> 
+  mutate(Taxon = ifelse(!is.na(Especie_AFLIBER), Especie_AFLIBER, Especie_Articulo)) |> 
+  rename(UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+```
+
+    ## mutate: new variable 'Taxon' (character) with 4 unique values and 0% NA
+    ## rename: renamed 2 variables (UTM1x1, UTM10x10)
+    ## mutate: new variable 'References' (character) with 19 unique values and 0% NA
+    ## select: dropped 5 variables (Especie_Articulo, Especie_AFLIBER, Observaciones, Referencia, DOI)
+
+``` r
+dt_modif3e <- dt_raw_3e|> 
+  rename(Taxon = Especie_Articulo,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+```
+
+    ## rename: renamed 3 variables (Taxon, UTM1x1, UTM10x10)
+    ## mutate: new variable 'References' (character) with 2 unique values and 0% NA
+    ## select: dropped 4 variables (Especie_AFLIBER, Observaciones, Referencia, DOI)
+
+``` r
+dt_modif <-   bind_rows(dt_modif1, dt_modif2, dt_modif3a,
+                        dt_modif3b, dt_modif3c, dt_modif3d, dt_modif3e) |>  
   mutate(Taxon =  stringr::str_to_lower(Taxon)) |> 
   mutate(Taxon =  stringr::str_to_sentence(Taxon)) |> 
   mutate(Taxon =  gsub(" ssp ", " ssp. ", Taxon)) |>
@@ -85,13 +174,13 @@ dt_modif <- dt_modif1 |>
   distinct()
 ```
 
-    ## mutate: changed 28,208 values (>99%) of 'Taxon' (0 new NAs)
-    ## mutate: changed 28,220 values (>99%) of 'Taxon' (0 new NAs)
+    ## mutate: changed 28,578 values (>99%) of 'Taxon' (0 new NAs)
+    ## mutate: changed 28,590 values (>99%) of 'Taxon' (0 new NAs)
     ## mutate: changed 63 values (<1%) of 'Taxon' (0 new NAs)
     ## mutate: changed 266 values (1%) of 'Taxon' (0 new NAs)
     ## mutate: changed 65 values (<1%) of 'Taxon' (0 new NAs)
     ## mutate: changed 3,173 values (11%) of 'Taxon' (0 new NAs)
-    ## distinct: removed 477 rows (2%), 27,792 rows remaining
+    ## distinct: removed 478 rows (2%), 28,161 rows remaining
 
 ## Prepare dataset
 
@@ -106,7 +195,7 @@ dt_check_vals <- dt_modif |>
 clean_values()
 ```
 
-    ## There are 2439 non-valid taxa Erasing them.
+    ## There are 2442 non-valid taxa Erasing them.
 
     ## mutate: no changes
     ## There are 485 non-valid cells. Erasing them.
@@ -128,7 +217,7 @@ dt_save <- dt_modif |>
   filter(!id %in% dt_include$id)
 ```
 
-    ## filter: removed 14,676 rows (53%), 13,116 rows remaining
+    ## filter: removed 15,040 rows (53%), 13,121 rows remaining
 
 ``` r
 readr::write_csv(select(dt_include, -matches("id") ),
@@ -160,7 +249,7 @@ sessioninfo::session_info()
     ##  collate  Spanish_Spain.utf8
     ##  ctype    Spanish_Spain.utf8
     ##  tz       Europe/Madrid
-    ##  date     2025-01-11
+    ##  date     2025-01-26
     ##  pandoc   2.18 @ C:/Program Files/RStudio/bin/quarto/bin/tools/ (via rmarkdown)
     ## 
     ## ─ Packages ───────────────────────────────────────────────────────────────────

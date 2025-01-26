@@ -41,6 +41,12 @@ citationkey <- "others_Castillo2024"
 # dt_raw <- readr::read_csv(here(paste0("inst/",citationkey,"/raw/XXXXXX.csv")))
 dt_raw_1 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/NuevasCitas_Elvira.xlsx")), sheet = 2)
 dt_raw_2 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/NuevasCitas_Elvira2.xlsx")), sheet = 2)
+dt_raw_3a <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 2)
+dt_raw_3b <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 3)
+dt_raw_3c <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 4)
+dt_raw_3d <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 5)
+dt_raw_3e <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 6)
+
 ```
 
 
@@ -70,8 +76,60 @@ dt_modif2 <- dt_raw_2 |>
            References)
 
 
-dt_modif <- dt_modif1 |> 
-  bind_rows(dt_modif2) |> 
+dt_modif3a <- dt_raw_3a |> 
+  rename(Taxon = Especie_AFLIBER,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`,
+         References = Referencia) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+dt_modif3b <- dt_raw_3b |> 
+  rename(Taxon = Especie_AFLIBER,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+dt_modif3c <- dt_raw_3c |> 
+  mutate(Taxon = ifelse(!is.na(Especie_AFLIBER), Especie_AFLIBER, Especie_Articulo)) |> 
+  rename(UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+dt_modif3d <- dt_raw_3d |> 
+  mutate(Taxon = ifelse(!is.na(Especie_AFLIBER), Especie_AFLIBER, Especie_Articulo)) |> 
+  rename(UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+dt_modif3e <- dt_raw_3e|> 
+  rename(Taxon = Especie_Articulo,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+dt_modif <-   bind_rows(dt_modif1, dt_modif2, dt_modif3a,
+                        dt_modif3b, dt_modif3c, dt_modif3d, dt_modif3e) |>  
   mutate(Taxon =  stringr::str_to_lower(Taxon)) |> 
   mutate(Taxon =  stringr::str_to_sentence(Taxon)) |> 
   mutate(Taxon =  gsub(" ssp ", " ssp. ", Taxon)) |>
