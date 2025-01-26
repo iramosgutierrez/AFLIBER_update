@@ -1,0 +1,148 @@
+---
+title: "Fernandez2024"
+author: "Ignacio Ramos-Gutiérrez" #author of the Rmd!
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Data origin reference:
+Data generated at Herbario Universidad de Sevilla, in a project granted for Andalusian Protected Areas (J. Arroyo, M. Arista).
+
+Primary data compiler:
+M. Pilar Fernández Díaz
+
+Other data compilers: 
+
+## Notes
+
+-  Occurrence precision was categorized into 4 groups depending on the info in the voucher (1km radius, <5km; 5-10km, >10km).
+- Occurrences with a radius >10km were disregarded (10932 data)
+- Buffers were created for the rest of the precision values. If > 75% of the surface fell into 1 cell, it was selected.
+
+
+## Packages
+
+```{r, message=FALSE}
+library(here)
+library(tidyverse)
+library(tidylog)
+library(terra)
+
+source(here::here("R/AFLIBER_functions.R"))
+```
+
+
+## Load dataset
+
+```{r}
+citationkey <- "Fernandez2024"
+# dt_raw <- readr::read_csv(here(paste0("inst/",citationkey,"/raw/XXXXXX.csv")))
+dt_raw <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Tabla Andalucia 23-12-24 AFLIBER.xlsx"))) |> 
+  filter(Prec != ">10")
+
+utm10 <- terra::vect(here::here("data-raw/Iberian_Peninsula_10x10_Grid/Iberian_Peninsula_10x10_Grid.shp"))
+
+```
+
+
+## Modify dataset
+
+```{r}
+#modify variables
+
+dt_spat <- dt_raw |> 
+    mutate(X_30S = as.numeric(X_30S),
+           Y_30S = as.numeric(Y_30S)) |> 
+  mutate(radius = case_when(Prec == "<5" ~ 5,
+                            Prec == "1" ~ 1,
+                            Prec == "5-10" ~ 10)) |> 
+  terra::vect(geom = c("X_30S", "Y_30S")) 
+
+get_major_grid <- function(point, buffer.radius){
+  buffer <- terra::buffer(point, width = buffer.radius*1000) |> 
+    simplifyGeom()
+  crop <- terra::crop( utm10, buffer)
+  crop$area <- suppressWarnings(terra::expanse(crop)/terra::expanse(buffer))
+  if(any(crop$area>0.75)){
+    return(crop$MGRS_10km[which(crop$area>0.75)])
+  }else{
+    return(NA)
+  }
+}
+
+
+vals <- vector(length = length(dt_spat$ID))
+for(i in 1:length(dt_spat$ID)){
+ RIRG::progressbar(i, length(vals), units = "mins")
+vals[i] <- get_major_grid(dt_spat[i,], dt_spat$radius[i])
+}
+
+
+dt_modif <- dt_raw |> 
+  mutate(Taxon = ifelse(INFRANK == "subsp.", 
+                        paste0(GENERO, " ", ESPECIE, " ", INFRA),
+                        paste0(GENERO, " ", ESPECIE))) |> 
+  mutate(UTM1x1 = NA,
+         UTM10x10 = vals,
+         References = "FlorAnd: Flora de Andalucía online. https://servicio.us.es/florand") |> 
+  
+
+
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+```
+
+
+## Prepare dataset
+
+```{r}
+
+dt_modif$id <- 1:nrow(dt_modif)
+# 
+# #check allowed values
+# check_taxa(dt_modif)  #see incorrect taxa
+# check_cells(dt_modif)  #see incorrect cells
+
+dt_check_vals <- dt_modif |> 
+clean_values()
+
+
+# Create dataset to compile
+dt_include<- dt_check_vals |> 
+  distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References,
+           id)
+
+dt_save <- dt_modif |> 
+  filter(!id %in% dt_include$id)
+
+```
+```{r}
+readr::write_csv(select(dt_include, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,".csv")))
+
+readr::write_csv(select(dt_save, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,"_notused.csv")))
+
+
+
+```
+
+
+
+## Session info
+
+```{r}
+sessioninfo::session_info()
+```
+
