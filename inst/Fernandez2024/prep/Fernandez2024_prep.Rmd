@@ -88,7 +88,7 @@ dt_modif <- dt_raw |>
                         paste0(GENERO, " ", ESPECIE))) |> 
   mutate(UTM1x1 = NA,
          UTM10x10 = vals,
-         References = "HerbarioUS") |> 
+         References = "FlorAnd: Flora de Andalucía online. https://servicio.us.es/florand") |> 
   
 
 
