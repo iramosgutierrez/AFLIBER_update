@@ -1,0 +1,190 @@
+---
+title: "others_Castillo2024"
+author: "Ignacio Ramos-Gutiérrez" #author of the Rmd!
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Data origin reference:
+Several journals
+
+Primary data compiler:
+Elvira Castillo
+
+Other data compilers: 
+
+## Notes
+
+-
+
+
+## Packages
+
+```{r, message=FALSE}
+library(here)
+library(tidyverse)
+library(tidylog)
+library(terra)
+
+source(here::here("R/AFLIBER_functions.R"))
+```
+
+
+## Load dataset
+
+```{r}
+citationkey <- "others_Castillo2024"
+# dt_raw <- readr::read_csv(here(paste0("inst/",citationkey,"/raw/XXXXXX.csv")))
+dt_raw_1 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/NuevasCitas_Elvira.xlsx")), sheet = 2)
+dt_raw_2 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/NuevasCitas_Elvira2.xlsx")), sheet = 2)
+dt_raw_3a <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 2)
+dt_raw_3b <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 3)
+dt_raw_3c <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 4)
+dt_raw_3d <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 5)
+dt_raw_3e <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Nuevas citas_Elvira3.xlsx")), sheet = 6)
+
+```
+
+
+## Modify dataset
+
+```{r}
+#modify variables
+dt_modif1 <- dt_raw_1 |> 
+  rename(Taxon = Especie,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(`Referencia bibliográfica`, ". ", `URL/DOI`)) |> 
+  select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+dt_modif2 <- dt_raw_2 |> 
+  rename(Taxon = Species,
+         UTM10x10 = UTM) |> 
+  mutate(UTM1x1= NA,
+         References = paste0(Referencia, ". ", `URL/DOI`)) |> 
+  select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+dt_modif3a <- dt_raw_3a |> 
+  rename(Taxon = Especie_AFLIBER,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`,
+         References = Referencia) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+dt_modif3b <- dt_raw_3b |> 
+  rename(Taxon = Especie_AFLIBER,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+dt_modif3c <- dt_raw_3c |> 
+  mutate(Taxon = ifelse(!is.na(Especie_AFLIBER), Especie_AFLIBER, Especie_Articulo)) |> 
+  rename(UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+dt_modif3d <- dt_raw_3d |> 
+  mutate(Taxon = ifelse(!is.na(Especie_AFLIBER), Especie_AFLIBER, Especie_Articulo)) |> 
+  rename(UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+dt_modif3e <- dt_raw_3e|> 
+  rename(Taxon = Especie_Articulo,
+         UTM1x1 = `UTM 1x1`,
+         UTM10x10 = `UTM 10x10`) |> 
+  mutate(References = paste0(Referencia, ". ", DOI)) |> 
+    select(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References)
+
+
+dt_modif <-   bind_rows(dt_modif1, dt_modif2, dt_modif3a,
+                        dt_modif3b, dt_modif3c, dt_modif3d, dt_modif3e) |>  
+  mutate(Taxon =  stringr::str_to_lower(Taxon)) |> 
+  mutate(Taxon =  stringr::str_to_sentence(Taxon)) |> 
+  mutate(Taxon =  gsub(" ssp ", " ssp. ", Taxon)) |>
+  mutate(Taxon =  gsub(" ssp. ", " subsp. ", Taxon)) |>
+  mutate(Taxon =  gsub(" subsp ", " subsp. ", Taxon)) |>
+  mutate(Taxon =  gsub(" subsp. ", " ", Taxon)) |>
+  
+  distinct()
+
+
+```
+
+
+## Prepare dataset
+
+```{r}
+
+dt_modif$id <- 1:nrow(dt_modif)
+
+# #check allowed values
+# check_taxa(dt_modif)  #see incorrect taxa
+# check_cells(dt_modif)  #see incorrect cells
+
+dt_check_vals <- dt_modif |> 
+clean_values()
+
+
+# Create dataset to compile
+dt_include<- dt_check_vals |> 
+  distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References,
+           id)
+
+dt_save <- dt_modif |> 
+  filter(!id %in% dt_include$id)
+
+```
+```{r}
+readr::write_csv(select(dt_include, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,".csv")))
+
+readr::write_csv(select(dt_save, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,"_notused.csv")))
+
+
+
+```
+
+
+
+## Session info
+
+```{r}
+sessioninfo::session_info()
+```
+
