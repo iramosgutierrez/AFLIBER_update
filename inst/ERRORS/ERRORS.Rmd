@@ -1,0 +1,123 @@
+---
+title: "citationkey"
+author: "Ignacio Ramos-Gutiérrez" #author of the Rmd!
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Errors detected throughout AFLIBER's previous version.
+
+Error data compilers:\
+Ignacio Ramos-Gutiérrez\
+Estrella Alfaro-Saiz\
+Carlos Salazar
+
+## Notes
+
+-   
+
+## Packages
+
+```{r, message=FALSE}
+library(here)
+library(tidyverse)
+library(tidylog)
+library(terra)
+
+source(here::here("R/AFLIBER_functions.R"))
+```
+
+## Load dataset
+
+```{r}
+
+```
+
+## Modify dataset
+
+```{r}
+#modify variables
+
+# erase.occurrences <- compiled.dataset |>
+  "Ornithogalum reverchonii"	"30SVF06"    #C.Salazar
+  "Ornithogalum reverchonii"	"30SVF0069"  #C.Salazar
+  "Ornithogalum reverchonii"	"30SVF28"    #C.Salazar
+  "Ornithogalum reverchonii"	"30SVF9969"  #C.Salazar
+  "Ornithogalum reverchonii"	"30SWH0411"  #C.Salazar
+  
+  "Woodwardia radicans"	                  "29TQH11"  #E.Alfaro
+  "Aconitum napellus castellanus"	"30TUK46"  #E.Alfaro
+  "Draba hispanica lebrunii"	            "29TQH26"  #E.Alfaro
+  "Draba hispanica lebrunii"	            "30TUN53"  #E.Alfaro
+  "Draba hispanica lebrunii"	            "30TUN63"  #E.Alfaro
+  "Petrocoptis pyrenaica viscosa"	        "29TQH26"  #E.Alfaro
+  "Petrocoptis pyrenaica viscosa"	        "30TTN55"  #E.Alfaro
+  "Echium cantabricum"  	                "30TUN58"  #E.Alfaro
+  "Echium cantabricum"  	                "30TUN75"  #E.Alfaro
+  "Genista sanabrensis" 	                "29TQG16"  #E.Alfaro
+  "Genista sanabrensis" 	                "29TPG84"  #E.Alfaro
+  "Genista sanabrensis" 	                "30TTN61"  #E.Alfaro
+  "Armeria rothmaleri"  	                "29TQH14"  #E.Alfaro
+  
+  "Viola cazorlensis" "30SVG09" #I.Ramos
+  "Gyrocaryum oppositifolium" "30STG69" #I.Ramos. Disappeared population.
+
+  "Geranium dolomiticum"   "29TPG89"  #E.Alfaro & C.Acedo
+  "Geranium dolomiticum"   "29TPH90"  #E.Alfaro & C.Acedo
+  "Geranium dolomiticum"   "29TPH91"  #E.Alfaro & C.Acedo
+  "Geranium dolomiticum"   "29TQH00"  #E.Alfaro & C.Acedo
+  "Geranium dolomiticum"   "29TQH15"  #E.Alfaro & C.Acedo
+  "Geranium dolomiticum"   "29TQH16"  #E.Alfaro & C.Acedo
+  "Geranium dolomiticum"   "29TQH25"  #E.Alfaro & C.Acedo
+
+
+
+```
+
+## Prepare dataset
+
+```{r}
+
+dt_modif$id <- 1:nrow(dt_modif)
+
+#check allowed values
+check_taxa(dt_modif)  #see incorrect taxa
+check_cells(dt_modif)  #see incorrect cells
+
+dt_check_vals <- dt_modif |> 
+clean_values()
+
+
+# Create dataset to compile
+dt_include<- dt_check_vals |> 
+  distinct(Taxon,
+           UTM10x10, 
+           UTM1x1, 
+           References,
+           id)
+
+dt_save <- dt_modif |> 
+  filter(!id %in% dt_include$id)
+
+```
+
+```{r}
+readr::write_csv(select(dt_include, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,".csv")))
+
+readr::write_csv(select(dt_save, -matches("id") ),
+                 here(paste0("inst/",citationkey,"/data/", citationkey,"_notused.csv")))
+
+
+
+```
+
+## Session info
+
+```{r}
+sessioninfo::session_info()
+```
