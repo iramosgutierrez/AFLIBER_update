@@ -203,6 +203,10 @@ erase_gridcell <- function(dt, taxon, grid1 = NULL, grid10 = NULL){
   return(dt_ret)
 }
 
+amend_gridcell <- function(dt, taxon, oldgrid1 = NULL, newgrid1 = NULL, oldgrid10 = NULL, newgrid10 = NULL){
+  
+}
+
 
 
 #' @export
