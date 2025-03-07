@@ -3,11 +3,14 @@ Puente2017
 Ignacio Ramos-Gutiérrez
 2025-03-07
 
-Data origin reference:
+**Data origin reference:**  
+Puente, J. (2017). La férula de Loscos en Aragón. Naturaleza Aragonesa
+34: 20-23.
 
-Primary data compiler:
+**Primary data compiler:**  
+Javier Puente
 
-Other data compilers:
+**Other data compilers:**
 
 ## Notes
 

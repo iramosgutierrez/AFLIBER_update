@@ -9,11 +9,14 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Data origin reference:
+**Data origin reference:**\
+Puente, J. (2017). La férula de Loscos en Aragón. Naturaleza Aragonesa 34: 20-23.
 
-Primary data compiler:
 
-Other data compilers: 
+**Primary data compiler:**\
+Javier Puente
+
+**Other data compilers:**
 
 ## Notes
 
