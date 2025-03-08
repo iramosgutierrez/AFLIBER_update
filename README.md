@@ -7,11 +7,13 @@
 ### Species List re-generation(needed for taxonomic checks afterwards)
 -  Import taxa from previous version
 -  Include new taxa in species list
+-  Remove deprecated names
 -  Re-run GBIF and POWO accepted names
 
 
 ### Distribution dataset compilation
--   Compile new occurrences form raw and generate new datasets; store discards for later checks.
+-  Compile new occurrences form raw and generate new datasets; store discards for later checks.
+-  Rename after new taxonomic framework (if species have been synonymized)
 
 
 ### Erase detected errors
