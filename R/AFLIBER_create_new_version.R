@@ -46,9 +46,9 @@ AFLIBER_novelties <- data.frame(Taxon      = NULL,
 for(citkey in citkeys){
   newdata <- readr::read_csv(paste0("inst/", citkey, "/data/", citkey, ".csv"), show_col_types = F) |> 
     mutate(branch=citkey)
-  
+
   if(citkey == "Mateo2024"){
-    newdata <- newdata |> 
+    newdata <- newdata |>
       mutate(References = "Mateo24")
   }
   AFLIBER_novelties <- AFLIBER_novelties |> 
@@ -58,5 +58,6 @@ for(citkey in citkeys){
 AFLIBER_novelties [is.na(AFLIBER_novelties$References),]
 refs <- AFLIBER_novelties |> 
   distinct(References, branch)
+
 
 
