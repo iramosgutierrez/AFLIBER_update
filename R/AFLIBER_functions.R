@@ -180,6 +180,7 @@ clean_values <- function(dt){
 }
 
 
+
 erase_gridcell <- function(dt, taxon, grid1 = NULL, grid10 = NULL){
   if(!taxon %in% dt$Taxon){stop(taxon , " is not in the given dataset")}
   if(is.null(grid1) & is.null(grid10)){stop("please specify a grid value")}
@@ -202,6 +203,50 @@ erase_gridcell <- function(dt, taxon, grid1 = NULL, grid10 = NULL){
   print(paste0(in.r-end.r, " rows removed"))
   return(dt_ret)
 }
+
+
+get_gbif_id <- function(taxon){
+  gbif_tab <- rgbif::name_backbone(taxon)
+  
+  if(is.null(gbif_tab$speciesKey)){
+    return("----")
+  }else{
+    return(gbif_tab$speciesKey)
+  }
+}
+get_POWO_name <- function(taxon, powonames){
+  print(taxon)
+  if(length(strsplit(taxon, split = " ")[[1]]) == 2){
+    taxon.use <- taxon
+  }else{
+    taxon.use <- paste0(stringr::word(taxon, 1, 2), " subsp. ", stringr::word(taxon, 3))
+  }
+  powo_tab <- powonames[powonames$taxon_name == taxon.use, ]
+  
+  if(nrow(powo_tab) >1){
+    if(sum(powo_tab[,"taxon_status",T] =="Accepted") ==1){
+      powo_tab <- powo_tab[powo_tab$taxon_status =="Accepted",]
+    }
+    
+    auths <- AFLIBER_specieslist_new[AFLIBER_specieslist_new$Taxon ==taxon, "Scientific_Name",T]
+    auths <-gsub(paste0(taxon, " "), "", auths)
+    
+    if(auths %in% powo_tab$taxon_authors){
+      powo_tab <- powo_tab[powo_tab$taxon_authors == auths,,T]
+    }
+    
+    
+  }
+  powo_id <- powo_tab[,"accepted_plant_name_id", drop=T]
+  if(length(powo_id) ==0){
+    return("----")
+  }else{
+    powo_name <- powonames$taxon_name[powonames$plant_name_id == as.numeric(powo_id)]
+    return(powo_name)
+  }
+}
+
+
 
 
 
