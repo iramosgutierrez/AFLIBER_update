@@ -1,7 +1,7 @@
 Alfaro2024
 ================
 Ignacio Ramos-Gutiérrez
-2025-01-11
+2025-03-08
 
 Data origin reference: Herbario LEB 2019-2024
 
@@ -31,7 +31,7 @@ citationkey <- "Alfaro2024"
 # dt_raw <- readr::read_csv(here(paste0("inst/",citationkey,"/raw/XXXXXX.csv")))
 dt_raw_1 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/Estrella_Alfaro_06-2024.xlsx")), sheet = 2)
 dt_raw_2 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/LEB-2019.xlsx"))) |> 
-  select(GENERO, HIB, ESPECIE, , INFRANK, INFRA,IDQUAL, UTM) 
+  select(GENERO, HIB, ESPECIE, INFRANK, INFRA,IDQUAL, UTM) 
 ```
 
     ## select: dropped 56 variables (Por_dondeC, NHERBARIO, ADIC, MáxDeNCLAVE, FECHA,
@@ -42,10 +42,12 @@ dt_raw_2 <- readxl::read_excel(here(paste0("inst/",citationkey,"/raw/LEB-2019.xl
 ``` r
 #modify variables
 dt_modif_1 <- dt_raw_1 |> 
-  mutate(UTM1x1 = gsub("---", NA, UTM1x1))
+  mutate(UTM1x1 = gsub("---", NA, UTM1x1)) |> 
+  rename(References = Ref)
 ```
 
     ## mutate: changed 50 values (100%) of 'UTM1x1' (50 new NAs)
+    ## rename: renamed one variable (References)
 
 ``` r
 dt_modif_2 <- dt_raw_2 |> 
@@ -167,7 +169,7 @@ sessioninfo::session_info()
     ##  collate  Spanish_Spain.utf8
     ##  ctype    Spanish_Spain.utf8
     ##  tz       Europe/Madrid
-    ##  date     2025-01-11
+    ##  date     2025-03-08
     ##  pandoc   2.18 @ C:/Program Files/RStudio/bin/quarto/bin/tools/ (via rmarkdown)
     ## 
     ## ─ Packages ───────────────────────────────────────────────────────────────────
