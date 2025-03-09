@@ -60,6 +60,12 @@ for(citkey in citkeys){
     bind_rows(newdata)
 }
 
+AFLIBER_novelties [is.na(AFLIBER_novelties$References),]
+
+
+
+# Erase detected errors
+
 
 
  # Amend Reference errors
@@ -90,12 +96,45 @@ refs <- refs |>
   mutate(Reference_ok = ifelse(is.na(Reference_ok), References, Reference_ok)) |> 
   distinct()
 
- AFLIBER_novelties |> 
+AFLIBER_novelties <- AFLIBER_novelties |> 
+  mutate(References =gsub(" ", " ", References)) |> 
   left_join(refs) |> 
-  select(-References) |> 
-  rename(References = Reference_ok) |> 
+rename(Reference_old = References,
+       References = Reference_ok) |> 
   select(Taxon,
          UTM1x1,
          UTM10x10,
-         References)
+         References) 
 
+refs_char <- sort(unique(AFLIBER_novelties$References))
+old_sources <- readr::read_csv("inst/AFLIBER/raw/AFLIBER_Supplement 4b-AFLIBER_DataSources.csv", 
+                               locale = locale(encoding = "Latin1"))
+
+new_sources <- data.frame(matrix(ncol = 4,nrow = length(refs_char)))
+colnames(new_sources) <- colnames(old_sources)
+new_sources$REFERENCE <- refs_char
+new_sources$CITATION <- refs_char
+
+given.refs <-old_sources$`NUMERIC REFERENCE` [-1]
+lastref <- max(given.refs)
+
+for(i in 1:length(refs_char)){
+  ref.i <- refs_char[i]
+  
+  if(ref.i %in% old_sources$REFERENCE){
+    ref.n <- old_sources$`NUMERIC REFERENCE`[old_sources$REFERENCE == ref.i]
+    new_sources$`NUMERIC REFERENCE`[i] <- ref.n
+  }else{
+    ref.n <- lastref+1
+    new_sources$`NUMERIC REFERENCE`[i] <- ref.n
+    lastref <- ref.n
+  }
+  
+  occs <- nrow( AFLIBER_novelties[AFLIBER_novelties$References == ref.i,])
+  new_sources[i, "NUMBER OF OCCURRENCES"] <- occs
+}
+
+new_sources <- new_sources |> 
+  arrange(desc(`NUMBER OF OCCURRENCES`))
+  
+write_csv(new_sources, "AFLIBER_v2.0.0/AFLIBER_DataSources.csv")
