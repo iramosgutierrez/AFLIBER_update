@@ -200,7 +200,8 @@ erase_gridcell <- function(dt, taxon, grid1 = NULL, grid10 = NULL){
   }
   
   end.r <- nrow(dt_ret)
-  print(paste0(in.r-end.r, " rows removed"))
+  cat(stringr::str_pad(taxon, width = 50, side = "right", pad = " "), "| ",
+                       in.r-end.r, " rows removed\n")
   return(dt_ret)
 }
 

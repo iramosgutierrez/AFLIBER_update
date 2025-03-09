@@ -1,4 +1,4 @@
-
+source("R/AFLIBER_functions.R")
 
 AFLIBER_distributions_complete <- AFLIBER_distributions_complete |> 
   
@@ -45,13 +45,15 @@ AFLIBER_distributions_complete <- AFLIBER_distributions_complete |>
     erase_gridcell(taxon = "Ferula loscosii"          , grid10 = "31TBF47") |> 
     erase_gridcell(taxon = "Ferula loscosii"          , grid10 = "30TYL43") |> 
     erase_gridcell(taxon = "Ferula loscosii"          , grid10 = "30TYL47") |> 
-    # erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TPG89") |> 
-    # erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TPH91") |> 
-    # erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TQH00") |> 
-    # erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TQH15") |> 
-    # erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TQH16") |> 
-    # erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TQH25") |> 
+    erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TPG89") |>
+    erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TPH91") |>
+    erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TQH00") |>
+    erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TQH15") |>
+    erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TQH16") |>
+    erase_gridcell(taxon = "Geranium dolomiticum"     , grid10 = "29TQH25") |>
     erase_gridcell(taxon = "Pilularia minuta"         , grid10 = "29TPG25") |> 
     erase_gridcell(taxon = "Viola cazorlensis"        , grid10 = "30SVG09") 
   
-  # Quercus coccifera         30TVL54	change for 30TVK6453	Juan Carlos Moreno Saiz
+AFLIBER_distributions_complete <- AFLIBER_distributions_complete |> 
+  mutate(UTM1x1 =   ifelse(Taxon == "Quercus coccifera" & UTM10x10 == "30TVL54", "30TVK6453", UTM1x1),
+         UTM10x10 = ifelse(Taxon == "Quercus coccifera" & UTM10x10 == "30TVL54", "30TVK65"  , UTM10x10))

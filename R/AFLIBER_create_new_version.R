@@ -3,7 +3,6 @@ library(tidyverse)
 
 
 source(here::here("R/AFLIBER_functions.R"))
-
 #1.  Species List re-generation
 
 AFLIBER_specieslist_old <- readr::read_csv("inst/AFLIBER/raw/AFLIBER_Species_list.csv", locale = locale(encoding = "Latin1"))
@@ -27,49 +26,20 @@ readr::write_csv(AFLIBER_specieslist_new, "AFLIBER_v2.0.0/AFLIBER_Species_list.c
 
 #2. Distribution dataset compilation
 
-# Load old dataset
-AFLIBER_distributions_old <- readr::read_csv("inst/AFLIBER/raw/AFLIBER_Distributions.csv", locale = locale(encoding = "Latin1")) |> 
-  separate_longer_delim(References, delim = "_") |> 
-  rename(UTM10x10 = UTM.cell) |> 
-  mutate(UTM1x1 = NA) |> 
-  select(Taxon,
-         UTM1x1,
-         UTM10x10,
-         References)
 
-
- # Merge new datasets
-citkeys <- list.dirs("inst", full.names = F, recursive = F) 
-citkeys <- citkeys[!citkeys %in% c("AFLIBER", "ERRORS", "COMPILATION")]
-
-AFLIBER_novelties <- data.frame(Taxon      = NULL,
-                                UTM1x1     = NULL,
-                                UTM10x10   = NULL,
-                                References = NULL,
-                                branch = NULL)
-
-for(citkey in citkeys){
-  newdata <- readr::read_csv(paste0("inst/", citkey, "/data/", citkey, ".csv"), show_col_types = F) |> 
-    mutate(branch=citkey)
-
-  if(citkey == "Mateo2024"){
-    newdata <- newdata |>
-      mutate(References = "Mateo, G. (2024). Personal Database.")
-  }
-  AFLIBER_novelties <- AFLIBER_novelties |> 
-    bind_rows(newdata)
-}
-
-AFLIBER_novelties [is.na(AFLIBER_novelties$References),]
+source(here::here("R/AFLIBER_merge_novelties.R"))
+ 
 
 
 
-# Erase detected errors
+# 3. Erase detected errors
+
+AFLIBER_distributions_complete <- bind_rows(AFLIBER_distributions_old, AFLIBER_novelties)
+ source("R/AFLIBER_corrections.R")
 
 
-
- # Amend Reference errors
-source("inst/COMPILATION/Compilation_functions.R")
+#4.  Amend Reference errors
+source("R/Compilation_functions.R")
 refs <- AFLIBER_novelties |> 
   distinct(References)
 
@@ -108,14 +78,16 @@ rename(Reference_old = References,
 
 refs_char <- sort(unique(AFLIBER_novelties$References))
 old_sources <- readr::read_csv("inst/AFLIBER/raw/AFLIBER_Supplement 4b-AFLIBER_DataSources.csv", 
-                               locale = locale(encoding = "Latin1"))
+                               locale = locale(encoding = "Latin1"),
+                               show_col_types = F)
 
 new_sources <- data.frame(matrix(ncol = 4,nrow = length(refs_char)))
 colnames(new_sources) <- colnames(old_sources)
 new_sources$REFERENCE <- refs_char
 new_sources$CITATION <- refs_char
 
-given.refs <-old_sources$`NUMERIC REFERENCE` [-1]
+given.refs <-old_sources$`NUMERIC REFERENCE`
+given.refs <- given.refs[-which(given.refs == 999)]
 lastref <- max(given.refs)
 
 for(i in 1:length(refs_char)){
@@ -132,9 +104,30 @@ for(i in 1:length(refs_char)){
   
   occs <- nrow( AFLIBER_novelties[AFLIBER_novelties$References == ref.i,])
   new_sources[i, "NUMBER OF OCCURRENCES"] <- occs
-}
+  }
 
 new_sources <- new_sources |> 
   arrange(desc(`NUMBER OF OCCURRENCES`))
   
-write_csv(new_sources, "AFLIBER_v2.0.0/AFLIBER_DataSources.csv")
+# write_csv(new_sources, "AFLIBER_v2.0.0/AFLIBER_DataSources.csv")
+
+
+
+# Convert long to compressed References column
+refs2join <- new_sources |> 
+  select(References = REFERENCE,
+         ref.n = `NUMERIC REFERENCE`)
+
+
+AFLIBER_novelties_num <- AFLIBER_novelties |> 
+  left_join(refs2join) |> 
+  mutate(ref.n =as.character(ref.n)) |> 
+  select(Taxon,
+         UTM1x1,
+         UTM10x10,
+         References = ref.n)
+
+
+AFLIBER_distributions_complete <- bind_rows(AFLIBER_distributions_old, AFLIBER_novelties_num) |> 
+  group_by(Taxon, UTM1x1, UTM10x10) |> 
+  summarise(fun = paste0(sort(unique(ref.n)), collapse = "_"))
