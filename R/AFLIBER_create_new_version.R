@@ -30,13 +30,7 @@ readr::write_csv(AFLIBER_specieslist_new, "AFLIBER_v2.0.0/AFLIBER_Species_list.c
 source(here::here("R/AFLIBER_merge_novelties.R"))
  
 
-
-
-# 3. Erase detected errors
-
-AFLIBER_distributions_complete <- bind_rows(AFLIBER_distributions_old, AFLIBER_novelties)
- source("R/AFLIBER_corrections.R")
-
+#Error erasing at the end!
 
 #4.  Amend Reference errors
 source("R/Compilation_functions.R")
@@ -77,7 +71,7 @@ rename(Reference_old = References,
          References) 
 
 refs_char <- sort(unique(AFLIBER_novelties$References))
-old_sources <- readr::read_csv("inst/AFLIBER/raw/AFLIBER_Supplement 4b-AFLIBER_DataSources.csv", 
+old_sources <- readr::read_csv("inst/AFLIBER/raw/AFLIBER_v1_DataSources.csv", 
                                locale = locale(encoding = "Latin1"),
                                show_col_types = F)
 
@@ -129,5 +123,64 @@ AFLIBER_novelties_num <- AFLIBER_novelties |>
 
 
 AFLIBER_distributions_complete <- bind_rows(AFLIBER_distributions_old, AFLIBER_novelties_num) |> 
-  group_by(Taxon, UTM1x1, UTM10x10) |> 
-  summarise(fun = paste0(sort(unique(ref.n)), collapse = "_"))
+  group_by(Taxon, UTM10x10, UTM1x1) |> 
+  summarise(References = paste0(sort(unique(as.numeric(References))), collapse = "_"))
+beepr::beep(2)
+
+# Erase detected errors posteriorly
+
+source("R/AFLIBER_corrections.R")
+
+
+
+
+# write_csv(AFLIBER_distributions_complete, "AFLIBER_v2.0.0/AFLIBER_Distributions.csv")
+
+#  create maps
+
+afliber_old <- read_csv("inst/AFLIBER/raw/AFLIBER_Distributions.csv", show_col_types = F)
+afliber_new <- read_csv("AFLIBER_v2.0.0/AFLIBER_Distributions.csv",   show_col_types = F)
+
+spp <- unique(afliber_new$Taxon)
+grid <- terra::vect("data-raw/Iberian_Peninsula_10x10_Grid/Iberian_Peninsula_10x10_Grid.shp")
+provs <- terra::vect("E:/UNI/4. DOCTORADO/1. AFLIBER/0. GARANTIA JUVENIL (antes en 'UNI')/ARCHIVOS GIS/provincias/PROVINCIAS_PIB+BAL.shp")
+
+for(sp in spp[-c(1:2834)]){ # la cosa va por "Helictochloa bromoides bromoides"[2835]
+  RIRG::progressbar(
+    which(spp == sp)-2834,
+    length(spp)-2834,
+    units = "mins"
+  )
+  old.cells <- unique(afliber_old$UTM.cell[afliber_old$Taxon == sp])
+  new.cells <- unique(afliber_new$UTM10x10[afliber_new$Taxon == sp])
+  
+  all.cells <- unique(c(old.cells, new.cells))
+  
+  only.old.cells <- all.cells[! (all.cells %in% new.cells)]
+  only.new.cells <- all.cells[! (all.cells %in% old.cells)]
+  bothtype.cells <-  all.cells[(all.cells %in% new.cells) & (all.cells %in% old.cells)]
+  
+  if(length(only.new.cells)== 0  & length(only.old.cells) == 0){
+    # cat(paste0("Skipping: ", sp))
+    next
+  }
+
+  png(paste0("AFLIBER_v2.0.0/maps_v1.2/", gsub(" ", "_", sp), ".png"),height = 150, width = 150,
+       units="mm", res =300)
+   par(bg="aliceblue")
+  terra::plot(provs, border ="lightgrey", col="white")
+  if(length(bothtype.cells)>0){
+  terra::plot(grid[grid$MGRS_10km %in% bothtype.cells], add = T, col ="#c4e082", border = "#c4e082aa")
+  }
+  if(length(only.new.cells)>0){
+  terra::plot(grid[grid$MGRS_10km %in% only.new.cells], add = T, col ="#528fcc", border = "transparent")
+  }
+  if(length(only.old.cells)>0){
+  terra::plot(grid[grid$MGRS_10km %in% only.old.cells], add = T, col ="#c92020", border = "transparent")
+  }
+  dev.off()
+
+}
+
+
+

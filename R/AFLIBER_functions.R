@@ -180,29 +180,17 @@ clean_values <- function(dt){
 }
 
 
+erase_gridcells <- function(occ.dt, elim.dt){
 
-erase_gridcell <- function(dt, taxon, grid1 = NULL, grid10 = NULL){
-  if(!taxon %in% dt$Taxon){stop(taxon , " is not in the given dataset")}
-  if(is.null(grid1) & is.null(grid10)){stop("please specify a grid value")}
-  if(!is.null(grid1) & !is.null(grid10)){stop("please select a unique resolution")}
+  elim_1 <- elim.dt[!is.na(elim$UTM1x1),]
+  elim_10 <- elim.dt[!is.na(elim$UTM10x10),]
   
-  in.r <- nrow(dt)
-  if(!is.null(grid1)){
-    if(any(nchar(grid1) !=9)){stop("Some 1x1 grid cells do not have 9 characters")}
-    
-    dt_ret <- dt[!(dt$Taxon == taxon & dt$UTM1x1 %in% grid1),]
-  }
+  ret.dt <- occ.dt
+  ret.dt <- ret.dt[!(paste0(ret.dt$Taxon,"-", ret.dt$UTM1x1) %in% paste0(elim_1$Taxon,"-", elim_1$UTM1x1)),]
+  ret.dt <- ret.dt[!(paste0(ret.dt$Taxon,"-", ret.dt$UTM10x10) %in% paste0(elim_10$Taxon,"-", elim_10$UTM10x10)),]
   
-  if(!is.null(grid10)){
-    if(any(nchar(grid10) !=7)){stop("Some 10x10 grid cells do not have 7 characters")}
-    
-    dt_ret <- dt[!(dt$Taxon == taxon & dt$UTM10x10 %in% grid10),]
-  }
-  
-  end.r <- nrow(dt_ret)
-  cat(stringr::str_pad(taxon, width = 50, side = "right", pad = " "), "| ",
-                       in.r-end.r, " rows removed\n")
-  return(dt_ret)
+  cat(paste0(nrow(occ.dt)-nrow(ret.dt), " rows removed"))
+  return(ret.dt)
 }
 
 

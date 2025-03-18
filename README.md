@@ -25,6 +25,11 @@
 -  Convert long to compressed References column
 
 
+### (optional) Re-run maps to check
+
+- Create maps for all species with changes
+
+
 
 
 ## Semantic versioning
