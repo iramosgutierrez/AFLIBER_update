@@ -37,5 +37,5 @@ for(citkey in citkeys){
 }
 
 AFLIBER_novelties [is.na(AFLIBER_novelties$References),]
-
+AFLIBER_novelties <- distinct(AFLIBER_novelties)
 rm(citkey, citkeys, newdata)

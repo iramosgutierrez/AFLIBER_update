@@ -1,0 +1,84 @@
+---
+title: "AFLIBER - Create New Version (AFLIBER2.0)"
+output: html_document
+date: "2025-10-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+
+source(here::here("R/AFLIBER_functions.R"))
+```
+
+## 1. Regeneración de la lista de especies
+
+Para esta versión AFLIBER2 no se ha realizado, dado que el listado de nombres ha de utilizarse en la extracción de datos desde los datasets iniciales, y esto se ha hecho utilizando el listado original en AFLIBER v1.
+
+Sin embargo, en futuras versiones sería importante integrarlo, ya que es la manera de generar un dataset con taxonomía y nomenclatura fluida.
+
+```{r}
+AFLIBER_specieslist_old <- read_csv(here("inst/AFLIBER/raw/AFLIBER_Species_list.csv"), show_col_types = F)
+
+AFLIBER_specieslist_new <- AFLIBER_specieslist_old
+# source(here::here("R/AFLIBER_1. Species list regeneration.R"))
+
+head(AFLIBER_specieslist_new)
+```
+
+
+## 2. Recopilación de citas nuevas
+
+Se incluyen todos los datasets que hayan sido incluidos como ramas nuevas en el repositorio de GitHub (cada rama tiene un citationkey identificador del dataset).
+
+Se crea un dataset nuevo (`AFLIBER_novelties`), además de cargar los datos antiguos (`AFLIBER_distributions_old`)
+
+```{r}
+
+
+source(here("R/AFLIBER_2. merge_novelties.R"))
+
+head(AFLIBER_novelties)
+```
+
+## 3. Referencias numéricas
+
+Los nuevos datos tienen referencias bibliográficas incorporadas como texto que tienen que incluirse en la tabla de referencias numéricas. Además, hay que hacer algunas modificaciones individuales por asignaciones de referencias no existentes (muchas veces a causa de "arrastrar" en excel, generando *doi*s de números consecutivos).
+
+
+```{r}
+source(here::here("R/AFLIBER_3. Reference numbers.R"))
+
+bind_rows(old_sources, new_sources) |> 
+  arrange(`NUMERIC REFERENCE`) |> 
+  head()
+```
+
+## 4. Eliminación de errores
+Por último, hay que eliminar todos los errores que se han ido detectando en los distintos procesos de limieza del dataset. Para evitar incluir errores que ya se detectaron en procesos previos, se combinan todos los datasets de corrección y luego se eliminan los registros.
+
+Esto potencialmente puede conducir a la eliminación sistemática de una cita al estar en una cuadrícula descartada. En este caso, habría que eliminar esa corrección, pero al ser un criterio experto que tiene que estar convenientemente contrastado, lo mejor es hacerlo de este modo.
+
+```{r}
+source("R/AFLIBER_4. Occurrence corrections.R")
+print(AFLIBER_distributions_complete)
+```
+
+## 5. Resumen de los datos incorporados
+
+
+```{r}
+source("R/AFLIBER_5. Summary.R")
+
+library(patchwork)
+old
+
+new
+
+diff
+```
+
+
+
+
