@@ -14,19 +14,12 @@ source(here::here("R/AFLIBER_functions.R"))
 
 ## 1. Regeneración de la lista de especies
 
-Para esta versión AFLIBER2 no se ha realizado, dado que el listado de nombres ha de utilizarse en la extracción de datos desde los datasets iniciales, y esto se ha hecho utilizando el listado original en AFLIBER v1.
-
-Sin embargo, en futuras versiones sería importante integrarlo, ya que es la manera de generar un dataset con taxonomía y nomenclatura fluida.
-
-Los único cambios nomenclaturales incluidos son: unión de las 2 subespecies de *Hedera*, y cambio de *Hedera maderensis iberica* a *H. iberica*.
 
 ```{r checklist}
-AFLIBER_specieslist_old <- read_csv(here("inst/AFLIBER/raw/AFLIBER_Species_list.csv"), show_col_types = F)
 
-AFLIBER_specieslist_new <- AFLIBER_specieslist_old
-# source(here::here("R/AFLIBER_1. Species list regeneration.R"))
+source(here::here("R/AFLIBER_1. Species list regeneration.R"))
 
-print(AFLIBER_specieslist_new)
+print(AFLIBER_specieslist_new[!(AFLIBER_specieslist_new$Taxon %in% AFLIBER_specieslist_old$Taxon),])
 ```
 
 
@@ -37,7 +30,6 @@ Se incluyen todos los datasets que hayan sido incluidos como ramas nuevas en el 
 Se crea un dataset nuevo (`AFLIBER_novelties`), además de cargar los datos antiguos (`AFLIBER_distributions_old`)
 
 ```{r new_occurrences}
-
 
 source(here("R/AFLIBER_2. merge_novelties.R"))
 
@@ -64,13 +56,16 @@ new_sources |>
 ```
 
 ## 4. Eliminación de errores
-Por último, hay que eliminar todos los errores que se han ido detectando en los distintos procesos de limieza del dataset. Para evitar incluir errores que ya se detectaron en procesos previos, se combinan todos los datasets de corrección y luego se eliminan los registros.
+Por último, hay que eliminar todos los errores que se han ido detectando en los distintos procesos de limpieza del dataset. Para evitar incluir errores que ya se detectaron en procesos previos, se combinan todos los datasets de corrección y luego se eliminan los registros.
 
 Esto potencialmente puede conducir a la eliminación sistemática de una cita al estar en una cuadrícula descartada. En este caso, habría que eliminar esa corrección, pero al ser un criterio experto que tiene que estar convenientemente contrastado, lo mejor es hacerlo de este modo.
 
 ```{r errors}
 source("R/AFLIBER_4. Occurrence corrections.R")
-print(AFLIBER_distributions_complete)
+
+print(AFLIBER_distributions_final)
+# readr::write_csv(AFLIBER_distributions_final, "AFLIBER_v2.0.0/AFLIBER_Distributions.csv" )
+
 ```
 
 ## 5. Resumen de los datos incorporados

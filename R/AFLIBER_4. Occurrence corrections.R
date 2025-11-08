@@ -33,9 +33,9 @@ AFLIBER_distributions_final <- AFLIBER_distributions_complete |>
                          paste0(substr(UTM1x1, 1, 6), substr(UTM1x1, 8, 8)))) |> 
   # filter(is.na(UTM1x1) | UTM10x10 == extr10) |> 
   mutate(UTM1x1 = ifelse(!is.na(UTM1x1) & UTM10x10 == extr10, UTM1x1, NA)) |> 
-  select(-extr10) |> 
+  select(-extr10, -UTM1x1) |> 
   distinct()
 
          
          
-readr::write_csv(AFLIBER_distributions_final, "AFLIBER_v2.0.0/AFLIBER_Distributions.csv" )
+
