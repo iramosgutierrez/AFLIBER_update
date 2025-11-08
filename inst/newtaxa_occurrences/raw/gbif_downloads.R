@@ -4,10 +4,10 @@ library(terra)
 
 
 
-provs <- vect("E:/UNI/4. DOCTORADO/1. AFLIBER/0. GARANTIA JUVENIL (antes en 'UNI')/ARCHIVOS GIS/provincias/PROVINCIAS_PIB+BAL.shp")
+provs <- vect(".../PROVINCIAS_PIB+BAL.shp")
 provs <-terra::project(provs, "epsg:4326")
 
-grid <- vect("E:/UNI/4. DOCTORADO/1. AFLIBER/0. GARANTIA JUVENIL (antes en 'UNI')/ARCHIVOS GIS/Malla 10x10/Iberian_Peninsula_10x10_Grid/Iberian_Peninsula_10x10_Grid.shp")
+grid <- vect(".../Iberian_Peninsula_10x10_Grid.shp")
 
 extent.1 <- terra::ext(provs[1,])
 xm1 <- extent.1[1]
