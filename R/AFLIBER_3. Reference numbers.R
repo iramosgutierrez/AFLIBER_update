@@ -88,6 +88,6 @@ AFLIBER_novelties_num <- AFLIBER_novelties |>
 
 
 AFLIBER_distributions_complete <- bind_rows(AFLIBER_distributions_old, AFLIBER_novelties_num) |> 
-  group_by(Taxon, UTM10x10, UTM1x1) |> 
+  group_by(Taxon, UTM10x10) |> 
   summarise(References = paste0(sort(unique(as.numeric(References))), collapse = "_"))
 beepr::beep(2)

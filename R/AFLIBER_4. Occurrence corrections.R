@@ -16,7 +16,7 @@ AFLIBER_distributions_complete <- erase_gridcells(AFLIBER_distributions_complete
   
 #Manual corrections
 AFLIBER_distributions_complete <- AFLIBER_distributions_complete |> 
-  mutate(UTM1x1   = ifelse(Taxon == "Quercus coccifera" & UTM10x10 == "30TVL54", "30TVK6453", UTM1x1),
+  mutate(#UTM1x1   = ifelse(Taxon == "Quercus coccifera" & UTM10x10 == "30TVL54", "30TVK6453", UTM1x1),
          UTM10x10 = ifelse(Taxon == "Quercus coccifera" & UTM10x10 == "30TVL54", "30TVK65"  , UTM10x10)) |> 
   
   mutate(Taxon = ifelse(Taxon == "Hedera helix helix", "Hedera helix", Taxon),
@@ -28,12 +28,13 @@ AFLIBER_distributions_complete <- AFLIBER_distributions_complete |>
 
 AFLIBER_distributions_final <- AFLIBER_distributions_complete |> 
   ungroup() |> 
-  mutate(extr10 = ifelse(is.na(UTM1x1), 
-                         NA, 
-                         paste0(substr(UTM1x1, 1, 6), substr(UTM1x1, 8, 8)))) |> 
-  # filter(is.na(UTM1x1) | UTM10x10 == extr10) |> 
-  mutate(UTM1x1 = ifelse(!is.na(UTM1x1) & UTM10x10 == extr10, UTM1x1, NA)) |> 
-  select(-extr10, -UTM1x1) |> 
+  
+  # mutate(extr10 = ifelse(is.na(UTM1x1), 
+  #                        NA, 
+  #                        paste0(substr(UTM1x1, 1, 6), substr(UTM1x1, 8, 8)))) |> 
+  # # filter(is.na(UTM1x1) | UTM10x10 == extr10) |> 
+  # mutate(UTM1x1 = ifelse(!is.na(UTM1x1) & UTM10x10 == extr10, UTM1x1, NA)) |> 
+  # select(-extr10, -UTM1x1) |> 
   distinct()
 
          

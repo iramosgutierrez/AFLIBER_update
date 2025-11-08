@@ -49,7 +49,6 @@ Bromus alopecuros,29SMD83,CRZ
 Bromus alopecuros,30TXM71,CRZ
 Bromus alopecuros,30STF88,CRZ
 Bromus alopecuros,30STF77,CRZ
-Bromus fasciculatus,Todoelmapa,CRZ
 Bromus secalinus,30TUN65,CRZ
 Calamagrostis arundinacea,30TTK77,CRZ
 Corynephorus articulatus,30TXL09,CRZ
@@ -680,7 +679,6 @@ Ornithopus sativus isthmocarpus,30TWM01,JPA
 Ornithopus sativus isthmocarpus,30TWM02,JPA
 Ornithopus sativus isthmocarpus,30TWM11,JPA
 Ornithopus sativus isthmocarpus,30TWM13,JPA
-Orobanche artemisiae-campestris,adiciones,JPA
 Orobanche caryophyllacea,29SQC06,JPA
 Orobanche caryophyllacea,30STH42,JPA
 Otospermum glabrum,30SWF87,JPA
@@ -1729,7 +1727,6 @@ Sempervivum tectorum,30TVM78,MGB
 Sempervivum tectorum,30TVL37,MGB
 Sempervivum tectorum,30TVL43,MGB
 Sempervivum tectorum,30TVL21,MGB
-Sempervivum tectorum,SuddeCataluña(Tarragona),MGB
 Thymelaea dioica,31TDG52,MGB
 Thymelaea dioica,31TDG53,MGB
 Thymelaea dioica,31TCH24,MGB
@@ -2045,11 +2042,11 @@ Rhamnus ludovici-salvatoris,30SVG60,VVN
 Romulea clusiana,30TVP61,VVN
 Romulea ramiflora gaditana,30TUK33,VVN
 Rosa elliptica,29SPD70,VVN
-Rosa elliptica,29TQH21(Afliberv1),VVN
-Rosa glauca,31TBG63(Afliberv1),VVN
+Rosa elliptica,29TQH21,VVN
+Rosa glauca,31TBG63,VVN
 Rosa pendulina,29SPC56,VVN
-Rosa pendulina,31TDG41(Afliberv1),VVN
-Rosa pendulina,31TBG80(Afliberv1),VVN
+Rosa pendulina,31TDG41,VVN
+Rosa pendulina,31TBG80,VVN
 Rubus hirtus,30TTK66,VVN
 Rumex bucephalophorus hispanicus,30TVN99,VVN
 Rumex bucephalophorus hispanicus,30SVH53,VVN
