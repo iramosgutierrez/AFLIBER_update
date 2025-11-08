@@ -43,8 +43,8 @@ provs <- terra::vect("E:/UNI/4. DOCTORADO/1. AFLIBER/0. GARANTIA JUVENIL (antes 
 
 for(sp in spp){ # la cosa va por "Helictochloa bromoides bromoides"[2835]
   RIRG::progressbar(
-    which(spp == sp)-2834,
-    length(spp)-2834,
+    which(spp == sp),
+    length(spp),
     units = "mins"
   )
   old.cells <- unique(afliber_old$UTM.cell[afliber_old$Taxon == sp])
@@ -64,10 +64,10 @@ for(sp in spp){ # la cosa va por "Helictochloa bromoides bromoides"[2835]
     next
   }
 
-  png(paste0("AFLIBER_v2.0.0/maps_v1.2/", gsub(" ", "_", sp), ".png"),height = 150, width = 150,
+  png(paste0("../GitHub/maps/maps_v3/", gsub(" ", "_", sp), ".png"),height = 150, width = 180,
        units="mm", res =300)
    par(bg="aliceblue")
-  terra::plot(provs, border ="lightgrey", col="white")
+  terra::plot(provs, border ="lightgrey", col="white", main = sp)
   if(length(bothtype.cells)>0){
   terra::plot(grid[grid$MGRS_10km %in% bothtype.cells], add = T, col ="#c4e082", border = "#c4e082aa")
   }

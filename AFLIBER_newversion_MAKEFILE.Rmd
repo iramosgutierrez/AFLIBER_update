@@ -18,13 +18,15 @@ Para esta versión AFLIBER2 no se ha realizado, dado que el listado de nombres h
 
 Sin embargo, en futuras versiones sería importante integrarlo, ya que es la manera de generar un dataset con taxonomía y nomenclatura fluida.
 
-```{r}
+Los único cambios nomenclaturales incluidos son: unión de las 2 subespecies de *Hedera*, y cambio de *Hedera maderensis iberica* a *H. iberica*.
+
+```{r checklist}
 AFLIBER_specieslist_old <- read_csv(here("inst/AFLIBER/raw/AFLIBER_Species_list.csv"), show_col_types = F)
 
 AFLIBER_specieslist_new <- AFLIBER_specieslist_old
 # source(here::here("R/AFLIBER_1. Species list regeneration.R"))
 
-head(AFLIBER_specieslist_new)
+print(AFLIBER_specieslist_new)
 ```
 
 
@@ -34,12 +36,12 @@ Se incluyen todos los datasets que hayan sido incluidos como ramas nuevas en el 
 
 Se crea un dataset nuevo (`AFLIBER_novelties`), además de cargar los datos antiguos (`AFLIBER_distributions_old`)
 
-```{r}
+```{r new_occurrences}
 
 
 source(here("R/AFLIBER_2. merge_novelties.R"))
 
-head(AFLIBER_novelties)
+print(as_tibble(AFLIBER_novelties))
 ```
 
 ## 3. Referencias numéricas
@@ -47,12 +49,18 @@ head(AFLIBER_novelties)
 Los nuevos datos tienen referencias bibliográficas incorporadas como texto que tienen que incluirse en la tabla de referencias numéricas. Además, hay que hacer algunas modificaciones individuales por asignaciones de referencias no existentes (muchas veces a causa de "arrastrar" en excel, generando *doi*s de números consecutivos).
 
 
-```{r}
+```{r references}
 source(here::here("R/AFLIBER_3. Reference numbers.R"))
 
-bind_rows(old_sources, new_sources) |> 
-  arrange(`NUMERIC REFERENCE`) |> 
-  head()
+new_sources |> 
+  arrange(desc(`NUMBER OF OCCURRENCES`)) |> 
+  as_tibble() |> 
+  print()
+
+# bind_rows(old_sources, new_sources) |> 
+#   arrange(`NUMERIC REFERENCE`) |> 
+#   write_csv(file = "AFLIBER_v2.0.0/AFLIBER_DataSources.csv")
+
 ```
 
 ## 4. Eliminación de errores
@@ -60,18 +68,17 @@ Por último, hay que eliminar todos los errores que se han ido detectando en los
 
 Esto potencialmente puede conducir a la eliminación sistemática de una cita al estar en una cuadrícula descartada. En este caso, habría que eliminar esa corrección, pero al ser un criterio experto que tiene que estar convenientemente contrastado, lo mejor es hacerlo de este modo.
 
-```{r}
+```{r errors}
 source("R/AFLIBER_4. Occurrence corrections.R")
 print(AFLIBER_distributions_complete)
 ```
 
 ## 5. Resumen de los datos incorporados
+Podemos visualizar los mapas de riqueza de la primera y segunda versión; además de ver la distribución de datos de las novedades.
 
-
-```{r}
+```{r maps}
 source("R/AFLIBER_5. Summary.R")
 
-library(patchwork)
 old
 
 new
@@ -79,6 +86,17 @@ new
 diff
 ```
 
+## 6. Crear mapas individuales
 
+Generar mapas individuales para re-comprobaciones
+
+```{r individual_maps, eval=F, include = F}
+if(FALSE){ # To NOT RUN !!!
+  
+source("R/AFLIBER_6. Species_maps.R")
+
+  }
+
+```
 
 
