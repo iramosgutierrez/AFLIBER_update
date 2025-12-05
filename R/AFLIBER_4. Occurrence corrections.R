@@ -10,6 +10,10 @@ elim2b <- read_csv("inst/COMPILATION/AFLIBER_v2.2_Revision_elim.csv")#errors det
 elim <- bind_rows(elim1, elim2a, elim2b) |> 
   distinct()
 
+elim |> 
+  select(Taxon, UTM10x10) |> 
+  distinct() |> 
+  write_csv("AFLIBER_v2.0.0/AFLIBER_v2_Eliminations.csv")
 
 AFLIBER_distributions_complete <- erase_gridcells(AFLIBER_distributions_complete, elim)
   
@@ -21,7 +25,9 @@ AFLIBER_distributions_complete <- AFLIBER_distributions_complete |>
   
   mutate(Taxon = ifelse(Taxon == "Hedera helix helix", "Hedera helix", Taxon),
          Taxon = ifelse(Taxon == "Hedera helix rhizomatifera", "Hedera helix", Taxon),
-         Taxon = ifelse(Taxon == "Hedera maderensis iberica", "Hedera iberica", Taxon))
+         Taxon = ifelse(Taxon == "Hedera maderensis iberica", "Hedera iberica", Taxon)) |> 
+  
+  filter(Taxon %in% AFLIBER_specieslist_new$Taxon)
 
 
 # MGRS1x1 corrections

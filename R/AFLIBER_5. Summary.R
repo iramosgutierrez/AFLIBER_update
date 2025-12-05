@@ -10,7 +10,7 @@ AFLIBER_distributions_old <- readr::read_csv("inst/AFLIBER/raw/AFLIBER_Distribut
                                              show_col_types = FALSE) |> 
   rename(UTM10x10 = UTM.cell) 
 
-AFLIBER_distributions_new <-  readr::read_csv("AFLIBER_v2.0.0/AFLIBER_Distributions.csv")
+AFLIBER_distributions_new <-  readr::read_csv("AFLIBER_v2.0.0/AFLIBER_v2_Distributions.csv")
 
 
 

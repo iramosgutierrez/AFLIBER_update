@@ -19,7 +19,7 @@ source(here::here("R/AFLIBER_functions.R"))
 
 source(here::here("R/AFLIBER_1. Species list regeneration.R"))
 
-readr::write_csv(AFLIBER_specieslist_new, "AFLIBER_v2.0.0/AFLIBER_Species_list.csv" )
+readr::write_csv(AFLIBER_specieslist_new, "AFLIBER_v2.0.0/AFLIBER_v2_Species_list.csv" )
 
 print(AFLIBER_specieslist_new[!(AFLIBER_specieslist_new$Taxon %in% AFLIBER_specieslist_old$Taxon),])
 ```
@@ -53,7 +53,11 @@ new_sources |>
 
 bind_rows(old_sources, new_sources) |>
   arrange(`NUMERIC REFERENCE`) |>
-  write_csv(file = "AFLIBER_v2.0.0/AFLIBER_DataSources.csv")
+  rename(Numeric_reference = `NUMERIC REFERENCE`,
+         Reference = `REFERENCE`,
+         Citation = `CITATION`,
+         Number_occurrences = `NUMBER OF OCCURRENCES`) |> 
+  write_csv(file = "AFLIBER_v2.0.0/AFLIBER_v2_DataSources.csv")
 
 ```
 
@@ -66,7 +70,7 @@ Esto potencialmente puede conducir a la eliminación sistemática de una cita al
 source("R/AFLIBER_4. Occurrence corrections.R")
 
 print(AFLIBER_distributions_final)
-readr::write_csv(AFLIBER_distributions_final, "AFLIBER_v2.0.0/AFLIBER_Distributions.csv" )
+readr::write_csv(AFLIBER_distributions_final, "AFLIBER_v2.0.0/AFLIBER_v2_Distributions.csv" )
 
 ```
 
